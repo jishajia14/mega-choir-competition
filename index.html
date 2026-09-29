@@ -44,6 +44,43 @@
         .animate-pulse-subtle {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
+        /* Ensure touch targets and containers scale on smaller screens */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        img, video, iframe, table {
+            max-width: 100%;
+              height: auto;
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 768px) {
+        /* Adjust layout containers to single column */
+        body {
+            padding: 10px;
+            font-size: 16px; /* Prevents auto-zoom on input focus in iOS */
+        }
+
+        /* Make header stack vertically on mobile */
+        header div {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        /* Make form containers fill the mobile width */
+        form, .container, section {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 15px;
+        }
+
+        /* Enable horizontal scrolling for tables on mobile */
+        .table-responsive, div:has(> table) {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
     </style>
 </head>
 <body class="bg-no-repeat bg-cover bg-center bg-fixed min-h-screen flex flex-col font-sans text-slate-800 selection:bg-brand-500 selection:text-white"
