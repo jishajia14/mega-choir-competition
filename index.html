@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega Choir Competition</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5338/5338726.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .toast-enter {
+            transform: translateY(-120%);
+            opacity: 0;
+        }
+        .toast-show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .animate-pulse-subtle {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-no-repeat bg-cover bg-center bg-fixed min-h-screen flex flex-col font-sans text-slate-800 selection:bg-brand-500 selection:text-white"
+      style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShn8Cmb0Eny8ai2bNfUxjZ6ntUkbbRryqU66NEbXctI-YzCt2i5Fl3GdMD&s=10');">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-0">
+            <div class="flex flex-col sm:flex-row justify-between items-center py-2 sm:h-16 gap-3 sm:gap-0">
+                <!-- App Title Logo -->
+                <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-base sm:text-lg text-slate-900 leading-tight">CSI Vendalicode</h1>
+                            <p class="text-xs text-slate-500 font-medium">Mega Choir Competition 2026</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Navigation Tabs Switcher -->
+                <nav class="flex w-full sm:w-auto justify-center space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-xl">
+                    <button id="nav-register-btn" onclick="switchTab('register')" class="flex-1 sm:flex-none px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-white text-brand-600 shadow-sm text-center">
+                        <i class="fa-solid fa-pen-to-square mr-1.5"></i>Registration 
+                    </button>
+                    <button id="nav-dashboard-btn" onclick="switchTab('dashboard')" class="flex-1 sm:flex-none px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-headset"></i>
+                        <span>Dashboard</span>
+                        <span id="nav-badge" class="ml-1 px-2 py-0.5 text-xs bg-brand-500 text-white font-bold rounded-full">0</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Floating Notification Toast -->
+    <div id="toast" class="fixed top-20 right-4 left-4 sm:left-auto z-50 transform transition-all duration-300 toast-enter pointer-events-none">
+        <div id="toast-content" class="flex items-center space-x-3 bg-slate-900 text-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl shadow-xl border border-slate-700 max-w-sm mx-auto sm:max-w-none">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+            <span id="toast-msg" class="text-xs sm:text-sm font-medium">Notification message</span>
+        </div>
+    </div>
+    
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <!-- VIEW 1: SONG TEAM REGISTRATION FORM -->
+        <section id="view-register" class="max-w-2xl mx-auto block">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-brand-600 to-indigo-600 p-5 sm:p-8 text-white">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-bold">Register Your Crew</h2>
+                        </div>
+                        <span class="bg-white/20 backdrop-blur-md text-white text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-semibold">
+                            Live Sync Active
+                        </span>
+                    </div>
+                </div>
+                <form id="registration-form" onsubmit="handleRegistration(event)" class="p-5 sm:p-8 space-y-5 sm:space-y-6">
+                    <!-- Team Name -->
+                    <div>
+                        <label for="team-name" class="block text-sm font-semibold text-slate-700 mb-1">Team Name <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-users"></i>
+                            </span>
+                            <input type="text" id="team-name" required placeholder="Team Name" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+                        </div>
+                    </div>
+                    <!-- Token Number -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="token-number" class="block text-sm font-semibold text-slate-700">Token Number <span class="text-rose-500">*</span></label>
+                            <button type="button" onclick="generateToken()" class="text-xs text-brand-600 font-semibold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Generate
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-ticket"></i>
+                            </span>
+                            <input type="text" id="token-number" required placeholder="e.g. TKN-Number" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition uppercase tracking-wider font-mono text-sm">
+                        </div>
+                    </div>
+                    <!-- Team Leader Name -->
+                    <div>
+                        <label for="leader-name" class="block text-sm font-semibold text-slate-700 mb-1">Team Leader Name <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <input type="text" id="leader-name" required placeholder="Team Leader Name" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+                        </div>
+                    </div>
+                    <!-- Contact & Email Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                        <!-- Contact Number -->
+                        <div>
+                            <label for="contact-number" class="block text-sm font-semibold text-slate-700 mb-1">Contact Number</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-phone"></i>
+                                </span>
+                                <input type="tel" id="contact-number" pattern="[0-9+\s-]{8,15}" placeholder="+1 555-0199" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+                            </div>
+                        </div>
+                        <!-- Email ID -->
+                        <div>
+                            <label for="email-id" class="block text-sm font-semibold text-slate-700 mb-1">Email ID</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </span>
+                                <input type="email" id="email-id" placeholder="leader@example.com" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 px-6 text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 font-semibold rounded-xl shadow-lg shadow-brand-500/30 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base">
+                        <i class="fa-solid fa-paper-plane"></i> Register Crew Now
+                    </button>
+                </form>
+            </div>
+
+            <!-- Celebration Modal Overlay -->
+            <div id="celebration-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+                <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full mx-4 text-center shadow-2xl transform scale-95 transition-transform duration-300 relative border border-slate-100">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl sm:text-3xl shadow-lg shadow-brand-500/30">
+                        <i class="fa-solid fa-guitar"></i>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-black text-slate-900 mb-2 tracking-tight">Rock On Stage...!</h3>
+                    <p class="text-slate-600 text-xs sm:text-sm mb-6">Your team is registered and ready to perform!</p>
+                    <button onclick="closeCelebrationModal()" class="w-full py-3 px-6 text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 font-semibold rounded-xl shadow-md transition-all text-xs sm:text-sm">
+                        Continue with Next Crew...
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Login Modal -->
+        <div id="admin-login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 relative border border-slate-100">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl sm:text-2xl shadow-md">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 text-center mb-1">Admin Authentication Required</h3>
+                <p class="text-slate-500 text-xs text-center mb-6">Enter your credentials to access the Dashboard</p>
+                <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+                        <input type="text" id="admin-username" required placeholder="admin" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                        <input type="password" id="admin-password" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="closeAdminModal()" class="w-1/2 py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                            Cancel
+                        </button>
+                        <button type="submit" class="w-1/2 py-2.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md transition">
+                            Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- VIEW 2: ANCHORING TEAM ADMIN DASHBOARD -->
+        <section id="view-dashboard" class="hidden space-y-6">
+            <!-- Summary Stats Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Registered</p>
+                        <h3 id="stat-total" class="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg sm:text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] sm:text-xs font-semibold text-amber-500 uppercase tracking-wider">Pending</p>
+                        <h3 id="stat-pending" class="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-lg sm:text-xl">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] sm:text-xs font-semibold text-purple-500 uppercase tracking-wider">On Stage</p>
+                        <h3 id="stat-stage" class="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg sm:text-xl">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] sm:text-xs font-semibold text-emerald-500 uppercase tracking-wider">Completed</p>
+                        <h3 id="stat-completed" class="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg sm:text-xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Header: Search, CSV Export, Clear All -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+                <!-- Search Input -->
+                <div class="relative w-full md:w-96">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="search-input" oninput="renderDashboard()" placeholder="Search Team Name or Token Number..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
+                </div>
+                <!-- Dashboard Action Controls -->
+                <div class="flex flex-row items-center gap-2 w-full md:w-auto justify-end">
+                    <button onclick="exportCSV()" class="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-csv text-emerald-600"></i> Export CSV
+                    </button>
+                    <button onclick="clearAllTeams()" class="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Teams Live Table View -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-full">
+                        <thead class="hidden md:table-header-group">
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="px-6 py-4">Token #</th>
+                                <th class="px-6 py-4">Team Info</th>
+                                <th class="px-6 py-4">Leader & Contact</th>
+                                <th class="px-6 py-4">Stage Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teams-tbody" class="divide-y divide-slate-100 text-sm block md:table-row-group">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Empty State Indicator -->
+                <div id="empty-state" class="hidden py-16 text-center">
+                    <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i class="fa-solid fa-inbox"></i>
+                    </div>
+                    <h4 class="text-base font-semibold text-slate-700">No Teams Found</h4>
+                    <p class="text-sm text-slate-400 mt-1">There are no song teams registered matching your criteria.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'stage_sync_teams_data';
+        const initialData = [
+            {
+                id: '1',
+                teamName: 'The Rhythm Rebels',
+                tokenNumber: 'TKN-1001',
+                leaderName: 'Sarah Jenkins',
+                contactNumber: '+1 555-0142',
+                emailId: 'sarah.j@example.com',
+                status: 'Completed',
+                registeredAt: new Date(Date.now() - 3600000 * 2).toISOString()
+            },
+            {
+                id: '2',
+                teamName: 'Harmonic Waves',
+                tokenNumber: 'TKN-1002',
+                leaderName: 'Michael Chen',
+                contactNumber: '+1 555-0188',
+                emailId: 'mchen@example.com',
+                status: 'On Stage',
+                registeredAt: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+                id: '3',
+                teamName: 'Echoes of Midnight',
+                tokenNumber: 'TKN-1003',
+                leaderName: 'Alex Turner',
+                contactNumber: '+1 555-0199',
+                emailId: 'alex@example.com',
+                status: 'Pending',
+                registeredAt: new Date().toISOString()
+            }
+        ];
+
+        function getTeams() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
+                return initialData;
+            }
+            try {
+                return JSON.parse(data);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveTeams(teams) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(teams));
+            renderDashboard();
+            updateNavBadge();
+        }
+
+        function generateToken() {
+            const teams = getTeams(); 
+            const nextSequence = teams.length + 1;
+            const formattedNumber = nextSequence < 10 ? `0${nextSequence}` : nextSequence;
+            document.getElementById('token-number').value = `TKN-${formattedNumber}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+            msgEl.textContent = message;
+            if (type === 'success') {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+            } else if (type === 'error') {
+                iconEl.className = 'fa-solid fa-triangle-exclamation text-rose-400 text-lg';
+            } else {
+                iconEl.className = 'fa-solid fa-circle-info text-blue-400 text-lg';
+            }
+            toast.classList.remove('toast-enter');
+            toast.classList.add('toast-show');
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                toast.classList.add('toast-enter');
+            }, 3000);
+        }
+
+        function triggerRibbons() {
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+            (function frame() {
+                confetti({
+                    particleCount: 7,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.7 }
+                });
+                confetti({
+                    particleCount: 7,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.7 }
+                });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            })();
+        }
+
+        function showCelebrationModal() {
+            const modal = document.getElementById('celebration-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+            }, 10);
+            triggerRibbons();
+        }
+
+        function closeCelebrationModal() {
+            const modal = document.getElementById('celebration-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                switchTab('register');
+            }, 300);
+        }
+
+        function handleRegistration(e) {
+            e.preventDefault();
+            const teamName = document.getElementById('team-name').value.trim();
+            const tokenNumber = document.getElementById('token-number').value.trim().toUpperCase();
+            const leaderName = document.getElementById('leader-name').value.trim();
+            const contactNumber = document.getElementById('contact-number').value.trim();
+            const emailId = document.getElementById('email-id').value.trim();
+            const teams = getTeams();
+
+            if (teams.some(t => t.tokenNumber === tokenNumber)) {
+                showToast(`Token '${tokenNumber}' is already registered!`, 'error');
+                return;
+            }
+
+            const newTeam = {
+                id: Date.now().toString(),
+                teamName,
+                tokenNumber,
+                leaderName,
+                contactNumber,
+                emailId,
+                status: 'Pending',
+                registeredAt: new Date().toISOString()
+            };
+
+            teams.unshift(newTeam);
+            saveTeams(teams);
+            document.getElementById('registration-form').reset();
+            generateToken();
+            showCelebrationModal();
+        }
+
+        function updateStatus(id, newStatus) {
+            const teams = getTeams();
+            const index = teams.findIndex(t => t.id === id);
+            if (index !== -1) {
+                teams[index].status = newStatus;
+                saveTeams(teams);
+                showToast(`Status updated to '${newStatus}'`);
+            }
+        }
+
+        function deleteTeam(id) {
+            const teams = getTeams().filter(t => t.id !== id);
+            saveTeams(teams);
+            showToast('Registration deleted.', 'info');
+        }
+
+        function clearAllTeams() {
+            if (confirm('Are you sure you want to clear all registered song teams? This action cannot be undone.')) {
+                saveTeams([]);
+                showToast('All registrations cleared.', 'error');
+            }
+        }
+
+        function exportCSV() {
+            const teams = getTeams();
+            if (teams.length === 0) {
+                showToast('No data available to export', 'error');
+                return;
+            }
+            const headers = ["Token Number", "Team Name", "Leader Name", "Contact Number", "Email ID", "Status", "Registration Date"];
+            const rows = teams.map(t => [
+                `"${t.tokenNumber}"`,
+                `"${t.teamName.replace(/"/g, '""')}"`,
+                `"${t.leaderName.replace(/"/g, '""')}"`,
+                `"${t.contactNumber}"`,
+                `"${t.emailId}"`,
+                `"${t.status}"`,
+                `"${new Date(t.registeredAt).toLocaleString()}"`
+            ]);
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `song_teams_export_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Exported CSV file successfully!');
+        }
+
+        function updateNavBadge() {
+            const teams = getTeams();
+            document.getElementById('nav-badge').textContent = teams.length;
+        }
+
+        let isAdminAuthenticated = false;
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "admin123";
+
+        function switchTab(tab) {
+            if (tab === 'dashboard' && !isAdminAuthenticated) {
+                openAdminModal();
+                return;
+            }
+            const regView = document.getElementById('view-register');
+            const dashView = document.getElementById('view-dashboard');
+            const regBtn = document.getElementById('nav-register-btn');
+            const dashBtn = document.getElementById('nav-dashboard-btn');
+            if (tab === 'register') {
+                regView.classList.remove('hidden');
+                dashView.classList.add('hidden');
+                regBtn.className = "flex-1 sm:flex-none px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-white text-brand-600 shadow-sm text-center";
+                dashBtn.className = "flex-1 sm:flex-none px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5";
+            } else {
+                regView.classList.add('hidden');
+                dashView.classList.remove('hidden');
+                dashBtn.className = "flex-1 sm:flex-none px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 bg-white text-brand-600 shadow-sm flex items-center justify-center gap-1.5";
+                regBtn.className = "flex-1 sm:flex-none px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900 text-center";
+                renderDashboard();
+            }
+        }
+
+        function openAdminModal() {
+            const modal = document.getElementById('admin-login-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeAdminModal() {
+            const modal = document.getElementById('admin-login-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('admin-username').value = '';
+                document.getElementById('admin-password').value = '';
+            }, 300);
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('admin-username').value.trim();
+            const pass = document.getElementById('admin-password').value.trim();
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                isAdminAuthenticated = true;
+                closeAdminModal();
+                showToast('Login Successful!', 'success');
+                switchTab('dashboard');
+            } else {
+                showToast('Invalid Username or Password', 'error');
+            }
+        }
+
+        function renderDashboard() {
+            const teams = getTeams();
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            const filteredTeams = teams.filter(t => 
+                t.teamName.toLowerCase().includes(searchQuery) ||
+                t.tokenNumber.toLowerCase().includes(searchQuery) ||
+                t.leaderName.toLowerCase().includes(searchQuery)
+            );
+
+            document.getElementById('stat-total').textContent = teams.length;
+            document.getElementById('stat-pending').textContent = teams.filter(t => t.status === 'Pending').length;
+            document.getElementById('stat-stage').textContent = teams.filter(t => t.status === 'On Stage').length;
+            document.getElementById('stat-completed').textContent = teams.filter(t => t.status === 'Completed').length;
+
+            const tbody = document.getElementById('teams-tbody');
+            const emptyState = document.getElementById('empty-state');
+            tbody.innerHTML = '';
+
+            if (filteredTeams.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filteredTeams.forEach(team => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-colors block md:table-row p-4 md:p-0 border-b md:border-b-0 border-slate-200";
+                
+                let statusBadgeClass = "";
+                if (team.status === 'Pending') statusBadgeClass = "bg-amber-100 text-amber-800 border-amber-200";
+                else if (team.status === 'On Stage') statusBadgeClass = "bg-purple-100 text-purple-800 border-purple-200 font-semibold animate-pulse-subtle";
+                else if (team.status === 'Completed') statusBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+                tr.innerHTML = `
+                    <td class="px-0 md:px-6 py-2 md:py-4 font-mono font-bold text-slate-800 flex md:table-cell justify-between items-center">
+                        <span class="md:hidden text-xs text-slate-400 font-sans uppercase">Token</span>
+                        <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200">${team.tokenNumber}</span>
+                    </td>
+                    <td class="px-0 md:px-6 py-2 md:py-4 flex md:table-cell justify-between items-center">
+                        <div>
+                            <div class="font-bold text-slate-900 text-base md:text-sm">${team.teamName}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Reg: ${new Date(team.registeredAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                    </td>
+                    <td class="px-0 md:px-6 py-2 md:py-4 block md:table-cell">
+                        <div class="text-slate-800 font-medium">${team.leaderName}</div>
+                        <div class="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span><i class="fa-solid fa-phone text-slate-400"></i> ${team.contactNumber || 'N/A'}</span>
+                            <span class="hidden sm:inline">•</span>
+                            <span><i class="fa-solid fa-envelope text-slate-400"></i> ${team.emailId || 'N/A'}</span>
+                        </div>
+                    </td>
+                    <td class="px-0 md:px-6 py-2 md:py-4 flex md:table-cell justify-between items-center">
+                        <span class="md:hidden text-xs text-slate-400 font-sans uppercase">Status</span>
+                        <select onchange="updateStatus('${team.id}', this.value)" class="text-xs border rounded-lg px-2.5 py-1.5 font-medium outline-none cursor-pointer ${statusBadgeClass}">
+                            <option value="Pending" ${team.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                            <option value="On Stage" ${team.status === 'On Stage' ? 'selected' : ''}>🎤 On Stage</option>
+                            <option value="Completed" ${team.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
+                        </select>
+                    </td>
+                    <td class="px-0 md:px-6 py-2 md:py-4 flex md:table-cell justify-end items-center text-right">
+                        <button onclick="deleteTeam('${team.id}')" title="Delete Team" class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEY) {
+                renderDashboard();
+                updateNavBadge();
+                showToast('Dashboard updated in real-time!', 'info');
+            }
+        });
+
+        window.onload = function () {
+            generateToken();
+            updateNavBadge();
+            renderDashboard();
+        };
+        document.addEventListener('DOMContentLoaded', generateToken);
+    </script>
+</body>
+</html>
